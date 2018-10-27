@@ -15,7 +15,8 @@ describe("SpecFileLocator", () =>
                 before(() =>
                 {
                     specFileLocator = new SpecFileLocator();
-                    result = specFileLocator.deduceSpecFileName("./example/parent/child/Example1Spec.js");
+                    let fileInfo = specFileLocator.generateFileInfo("./example/parent/child/Example1Spec.js");
+                    result = specFileLocator.deduceSpecFileName(fileInfo);
                 });
                 it("Should return the file that the passed in path leads too ", () =>
                 {
@@ -30,7 +31,8 @@ describe("SpecFileLocator", () =>
                     before(() =>
                     {
                         specFileLocator = new SpecFileLocator();
-                        result = specFileLocator.deduceSpecFileName("./example/parent/child/Example2Spec.ts");
+                        let fileInfo = specFileLocator.generateFileInfo("./example/parent/child/Example2Spec.ts")
+                        result = specFileLocator.deduceSpecFileName(fileInfo);
                     });
                     it("Should return a .js verson of the passed in path", () =>
                     {
@@ -48,7 +50,8 @@ describe("SpecFileLocator", () =>
                 before(() =>
                 {
                     specFileLocator = new SpecFileLocator();
-                    result = specFileLocator.deduceSpecFileName("./example/parent/child/Example3.js");
+                    let fileInfo = specFileLocator.generateFileInfo("./example/parent/child/Example3.js")
+                    result = specFileLocator.deduceSpecFileName(fileInfo);
                 });
                 it("Should return a 'Spec.js' version of the passed in file", () =>
                 {
@@ -63,7 +66,8 @@ describe("SpecFileLocator", () =>
                 before(() =>
                 {
                     specFileLocator = new SpecFileLocator();
-                    result = specFileLocator.deduceSpecFileName("./example/parent/child/Example4.ts");
+                    let fileInfo = specFileLocator.generateFileInfo("./example/parent/child/Example4.ts");
+                    result = specFileLocator.deduceSpecFileName(fileInfo);
                 });
                 it("Should return a 'Spec.js' version of the passed in file", () =>
                 {
@@ -72,7 +76,7 @@ describe("SpecFileLocator", () =>
             })
         });
     })
-    describe("stripFile", () =>
+    describe("generateFileInfo", () =>
     {
         describe("When a file path is passed in", () =>
         {
@@ -82,7 +86,7 @@ describe("SpecFileLocator", () =>
             before(() =>
             {
                 exampleFilePath = "./parent/child/exampleSpec.ts";
-                result = specFileLocator.stripFile(exampleFilePath);
+                result = specFileLocator.generateFileInfo(exampleFilePath);
             })
             it("Should return the file path inside a StrippedFileInfo object", () => 
             {
@@ -99,7 +103,7 @@ describe("SpecFileLocator", () =>
                 let result: StrippedFileInfo;
                 before(() => {
                     exampleFilePath = "./parent/child/examplespec.ts";
-                    result = specFileLocator.stripFile(exampleFilePath);
+                    result = specFileLocator.generateFileInfo(exampleFilePath);
                 });
 
                 it("Should return the fileName", () =>
@@ -115,7 +119,7 @@ describe("SpecFileLocator", () =>
                 let result: StrippedFileInfo;
                 before(() => {
                     exampleFilePath = "./parent/child/exampleSpec.js";
-                    result = specFileLocator.stripFile(exampleFilePath);
+                    result = specFileLocator.generateFileInfo(exampleFilePath);
                 });
 
                 it("Should return a StrippedFileInfo object with fileType of 'js'", () =>
@@ -131,7 +135,7 @@ describe("SpecFileLocator", () =>
                 let result: StrippedFileInfo;
                 before(() => {
                     exampleFilePath = "./parent/child/exampleSpec.ts";
-                    result = specFileLocator.stripFile(exampleFilePath);
+                    result = specFileLocator.generateFileInfo(exampleFilePath);
                 });
 
                 it("Should return a StrippedFileInfo object with fileType of 'ts'", () =>
@@ -148,7 +152,7 @@ describe("SpecFileLocator", () =>
             let result: StrippedFileInfo;
             before(() => {
                 exampleFilePath = "";
-                result = specFileLocator.stripFile(exampleFilePath);
+                result = specFileLocator.generateFileInfo(exampleFilePath);
             });
             
             it("Should return a fileType of ''", () =>
@@ -172,7 +176,7 @@ describe("SpecFileLocator", () =>
             });
         });
     });
-    describe.only("locateSpecFile", () =>
+    describe("readFileSystemForSpecFile", () =>
     {
 
         describe("When given a starting path", () => 
@@ -184,11 +188,13 @@ describe("SpecFileLocator", () =>
                     let specFileLocator: SpecFileLocator = new SpecFileLocator;
                     let result: string;
                     before(() =>{
-                        result = specFileLocator.locateSpecFile("./test/MockFolderStructure/TestFileAndSpecExists/src/mock.ts");
+                        let pathToMockFile = process.cwd() + "/SpecFileLocator/test/MockFolderStructure/TestFolderAndSpecExists/src/mock.ts";
+                        result = specFileLocator.readFileSystemForSpecFile(pathToMockFile);
                     })
                     it("Should return that spec files path", ()=>
                     {
-                        chai.expect(result).to.equal("./test/MockFolderStructure/TestFolderAndSpecExists/test/mockSpec.ts");
+                        let pathToMockFile = process.cwd() + "/SpecFileLocator/test/MockFolderStructure/TestFolderAndSpecExists/src/../test/mockSpec.js";
+                        chai.expect(result).to.equal(pathToMockFile);
                     })
                 })
 
@@ -197,7 +203,8 @@ describe("SpecFileLocator", () =>
                     let specFileLocator: SpecFileLocator = new SpecFileLocator;
                     let result: string;
                     before(() =>{
-                        result = specFileLocator.locateSpecFile("./test/MockFolderStructure/TestFolderAndSpecExists/src/DoesntExist.ts");
+                        let pathToMockFile = process.cwd() + "/SpecFileLocator/test/MockFolderStructure/TestFolderAndSpecExists/src/DoesntExist.ts";
+                        result = specFileLocator.readFileSystemForSpecFile(pathToMockFile);
                     })
                     it("Should return an empty string", ()=>
                     {
@@ -211,11 +218,12 @@ describe("SpecFileLocator", () =>
                 let specFileLocator: SpecFileLocator = new SpecFileLocator;
                 let result: string;
                 before(() =>{
-                    result = specFileLocator.locateSpecFile("./test/MockFolderStructure/TestFolderDoesntExist/src/mock.ts");
+                    let pathToMockFile = process.cwd() + "/SpecFileLocator/test/MockFolderStructure/TestFolderDoesntExist/src/mock.ts"
+                    result = specFileLocator.readFileSystemForSpecFile(pathToMockFile);
                 })
                 it("Should return an empty string", ()=>
                 {
-
+                    chai.expect(result).to.equal('');
                 })
             })
         });

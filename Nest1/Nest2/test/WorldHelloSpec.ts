@@ -9,7 +9,7 @@ describe("WorldHello", () => {
             let testClass:any;
             before(()=>
             {
-                testClass = new WorldHello.WorldHello;
+                testClass = new WorldHello.WorldHello();
             });
             it("Should return 5", () =>
             {

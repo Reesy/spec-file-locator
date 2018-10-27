@@ -3,7 +3,7 @@ export class WorldHello {
 
     };
 
-    public static RandomTest(): number{
+    public RandomTest(): number{
         return 5;
     };
 }

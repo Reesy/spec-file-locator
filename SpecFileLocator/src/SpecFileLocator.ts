@@ -1,5 +1,6 @@
 import { ISpecFileLocator } from "../interfaces/ISpecFileLocator";
 import { StrippedFileInfo } from "../interfaces/StrippedFileInfo";
+import * as fs from 'fs';
 
 export class SpecFileLocator implements ISpecFileLocator
 {
@@ -12,13 +13,14 @@ export class SpecFileLocator implements ISpecFileLocator
     * @description Provided a file path this function will deduce it's spec file. (If one exists)
     * @param {string} filePath The location of the target file. 
     */
-   public deduceSpecFileName(filePath: string): string
+   public deduceSpecFileName(fileInfo: StrippedFileInfo): string
    {
         let result = "";
-        let fileInfo: StrippedFileInfo = this.generateFileInfo(filePath);
+       // let fileInfo: StrippedFileInfo = this.generateFileInfo(filePath);
 
-        if(filePath === ""){
-            return filePath
+        if(fileInfo.filePath === "")
+        {
+            return fileInfo.filePath
         }
 
         if((this.endsWith(fileInfo.fileName, "spec") === true) || 
@@ -38,28 +40,32 @@ export class SpecFileLocator implements ISpecFileLocator
     */
    public generateFileInfo(filePath: string): StrippedFileInfo
    {
-        let result = {
+        let result = 
+        {
             fileName: "",
             fileType: "",
             filePath: filePath,
             directory: ""
         }
         //Early return, nothing to process
-        if(filePath === "" ){
+        if(filePath === "" )
+        {
             return result;
         }
 
         //If a match is found the filetype will be returned as '.FileType', otherwise null
         let currentFileType = filePath.match(/(\.\w+$)/igm);
 
-        if(currentFileType !== null){
+        if(currentFileType !== null)
+        {
             let rawType = currentFileType.toString();
             result.fileType = rawType.substr(1);
         }
         //If a match is found an array wil be returned, otherwise null
         let currentFileNameMatch = filePath.match(/([^\/]+)(?=\.\w+$)/igm); 
 
-        if(currentFileNameMatch !== null){
+        if(currentFileNameMatch !== null)
+        {
             result.fileName = currentFileNameMatch[0];
         }
 
@@ -74,26 +80,53 @@ export class SpecFileLocator implements ISpecFileLocator
     * @param filePathToSearchFrom 
     * @param expectedTestFileName 
     */
-   public locateSpecFile(originPath: string): string{
-        let specFileToFind = this.deduceSpecFileName(originPath);
-        
-        console.log("The spec file is" + specFileToFind);
+   public readFileSystemForSpecFile(originPath: string): string
+   {
+        let fileInfo: StrippedFileInfo = this.generateFileInfo(originPath);
+        let specFileToFind = this.deduceSpecFileName(fileInfo);
+
         //If the specFileName cannot be deduced there is little value in search the file system.
-        if(specFileToFind === ""){
+        if(specFileToFind === "")
+        {
             return "";
         }
-        
-        //This is the folder that the originFile exists at
-        let startingFolder = originPath
-        
-        return "2";
+
+        let traversingDir = fileInfo.directory;
+        let currentDirectoryContents;
+        for(var i = 0; i < 4; i++)
+        {
+            currentDirectoryContents = fs.readdirSync(traversingDir);
+            
+            //specfilefound break
+            if(currentDirectoryContents.indexOf(specFileToFind) !== -1)
+            {
+                return traversingDir + specFileToFind;
+            }
+
+            if(currentDirectoryContents.indexOf('test') !== -1)
+            {
+                let testDirectory = traversingDir + "test";
+                let testDirectoryContents = fs.readdirSync(testDirectory);
+                if(testDirectoryContents.lastIndexOf(specFileToFind) !== -1)
+                {
+                    let specFilePath = testDirectory + '/' + specFileToFind;
+                    return specFilePath;
+                }
+                break;
+            }
+
+            traversingDir = traversingDir + "../"
+        }
+        return "";
    }
 
    /**
-    * 
+    * @description Purpose of this is locate all target spec files under a project.
+    * In configuration we set the characteristics of the top level file structure and it will search under that directory
+    * Such characteristics can be expected top level files such as the inclusion of a package.json or .git file.
     * @param filePath 
     */
-   public locationModuleSpecFiles(filePath: string): Array<string>
+   public readFileSystemForModuleSpecFiles(filePath: string): Array<string>
    {
         return [];
    };
